@@ -2,22 +2,22 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM content loaded');
 
   const topAlertsContent = document.getElementById('top-alerts-content');
-  const zipInput = document.getElementById('zip-input');
+  const locationInput = document.getElementById('location-input');
   const searchBtn = document.getElementById('search-btn');
-  const zipAlertsContent = document.getElementById('zip-alerts-content');
+  const locationAlertsContent = document.getElementById('location-alerts-content');
 
-  console.log('Elements retrieved:', { topAlertsContent, zipInput, searchBtn, zipAlertsContent });
+  console.log('Elements retrieved:', { topAlertsContent, locationInput, searchBtn, locationAlertsContent });
 
-  const OPENWEATHER_API_KEY = 'API_KEY_OPEN_WEATHER'; // Replace with your actual API key
+  const OPENWEATHER_API_KEY = 'OPENWEATHER_API_KEY'; // Replace with your actual API key
 
   fetchTopAlerts();
 
   searchBtn.addEventListener('click', function() {
     console.log('Search button clicked');
-    const zipCode = zipInput.value.trim();
-    if (zipCode) {
-      console.log('Fetching alerts for zip code:', zipCode);
-      fetchAlertsByZip(zipCode);
+    const location = locationInput.value.trim();
+    if (location) {
+      console.log('Fetching alerts for location:', location);
+      fetchAlertsByLocation(location);
     }
   });
 
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     url.searchParams.append('message_type', 'alert');
     url.searchParams.append('urgency', 'Immediate');
     url.searchParams.append('severity', 'Severe,Extreme');
-    url.searchParams.append('limit', '2');
+    url.searchParams.append('limit', '3'); // Changed from 2 to 3
 
     fetch(url, {
       headers: {
@@ -57,11 +57,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  function fetchAlertsByZip(zipCode) {
-    console.log('Fetching alerts for zip:', zipCode);
-    zipAlertsContent.textContent = `Fetching alerts for ${zipCode}...`;
+  function fetchAlertsByLocation(location) {
+    console.log('Fetching alerts for location:', location);
+    locationAlertsContent.textContent = `Fetching alerts for ${location}...`;
 
-    const geocodingUrl = `http://api.openweathermap.org/geo/1.0/zip?zip=${zipCode},US&appid=${OPENWEATHER_API_KEY}`;
+    // Check if the input is a ZIP code (5 digit number)
+    const isZipCode = /^\d{5}$/.test(location);
+
+    let geocodingUrl;
+    if (isZipCode) {
+      geocodingUrl = `http://api.openweathermap.org/geo/1.0/zip?zip=${location},US&appid=${OPENWEATHER_API_KEY}`;
+    } else {
+      geocodingUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${location},US&limit=1&appid=${OPENWEATHER_API_KEY}`;
+    }
     
     fetch(geocodingUrl)
       .then(response => {
@@ -71,8 +79,20 @@ document.addEventListener('DOMContentLoaded', function() {
         return response.json();
       })
       .then(data => {
-        const lat = data.lat;
-        const lon = data.lon;
+        let lat, lon;
+        if (isZipCode) {
+          if (!data.lat || !data.lon) {
+            throw new Error('ZIP code not found');
+          }
+          lat = data.lat;
+          lon = data.lon;
+        } else {
+          if (data.length === 0) {
+            throw new Error('Location not found');
+          }
+          lat = data[0].lat;
+          lon = data[0].lon;
+        }
         
         return fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`, {
           headers: {
@@ -87,16 +107,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return response.json();
       })
       .then(data => {
-        console.log('Received data for zip:', data);
+        console.log('Received data for location:', data);
         if (data.features && data.features.length > 0) {
-          displayAlerts(data.features, zipAlertsContent);
+          displayAlerts(data.features, locationAlertsContent);
         } else {
-          displayNoAlerts(zipAlertsContent, `No active alerts found for ${zipCode}.`);
+          displayNoAlerts(locationAlertsContent, `No active alerts found for ${location}.`);
         }
       })
       .catch(error => {
-        console.error('Error fetching alerts for zip code:', error);
-        displayNoAlerts(zipAlertsContent, `Error fetching alerts: ${error.message}. Please check the ZIP code and try again.`);
+        console.error('Error fetching alerts for location:', error);
+        displayNoAlerts(locationAlertsContent, `Error fetching alerts: ${error.message}. Please check the location and try again.`);
       });
   }
 
