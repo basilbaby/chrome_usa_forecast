@@ -7,7 +7,7 @@ The USA Weather Alerts Chrome Extension provides users with up-to-date informati
 ## Features
 
 - Display top 2 severe weather alerts in the USA
-- Search for weather alerts by ZIP code
+- Search for weather alerts by ZIP code and city
 - Color-coded alert display (red for alerts, green for no alerts)
 - Responsive design with scrollable content areas
 
@@ -21,8 +21,8 @@ The USA Weather Alerts Chrome Extension provides users with up-to-date informati
 ## Usage
 
 1. Click on the extension icon in your Chrome toolbar to open the popup.
-2. View the top 2 severe weather alerts for the USA.
-3. Enter a ZIP code in the search box and click "Search" to view alerts for a specific area.
+2. View the top 3 severe weather alerts for the USA.
+3. Enter a ZIP code or city in the search box and click "Search" to view alerts for a specific area.
 
 ## API Usage
 
