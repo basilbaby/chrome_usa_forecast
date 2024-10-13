@@ -3,7 +3,10 @@
   "name": "USA Weather Alerts",
   "version": "1.0",
   "description": "Shows top weather alerts in the USA and allows searching by zip code",
-  "permissions": ["webRequest"],
+  "permissions": [
+    "geolocation",
+    "webRequest"
+  ],
   "host_permissions": [
     "https://api.weather.gov/*",
     "http://api.openweathermap.org/*"

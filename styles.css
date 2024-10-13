@@ -1,36 +1,60 @@
+:root {
+  --bg-color: #f0f0f0;
+  --text-color: #333;
+  --alert-bg-color: rgba(255, 99, 71, 0.5);
+  --alert-text-color: white;
+  --no-alert-bg-color: #ACE1AF;
+  --no-alert-text-color: white;
+  --weather-bg-color: #4CAF50;
+  --weather-text-color: white;
+}
+
+body.dark-mode {
+  --bg-color: #333;
+  --text-color: #f0f0f0;
+  --alert-bg-color: rgba(255, 99, 71, 0.7);
+  --alert-text-color: #f0f0f0;
+  --no-alert-bg-color: #2a4d69;
+  --no-alert-text-color: #f0f0f0;
+  --weather-bg-color: #2a4d69;
+  --weather-text-color: #f0f0f0;
+}
+
 body {
   width: 400px;
   font-family: Arial, sans-serif;
   padding: 10px;
   margin: 0;
-  background-color: #f0f0f0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
 }
 
 h1, h2 {
   text-align: center;
 }
 
-#zip-search {
+#location-search {
   margin-top: 20px;
   text-align: center;
 }
 
-#zip-input {
-  width: 100px;
+#location-input {
+  width: 200px;
   margin-right: 10px;
 }
 
 .alert {
-  background-color: rgba(255, 99, 71, 0.5);
-  color: white;
+  background-color: var(--alert-bg-color);
+  color: var(--alert-text-color);
   border-radius: 4px;
   padding: 10px;
   margin-bottom: 10px;
 }
 
 .no-alert {
-  background-color: #ACE1AF;
-  color: white;
+  background-color: var(--no-alert-bg-color);
+  color: var(--no-alert-text-color);
   border-radius: 4px;
   padding: 10px;
   margin-bottom: 10px;
@@ -52,8 +76,8 @@ h1, h2 {
   font-size: 0.9em;
 }
 
-#top-alerts-content, #zip-alerts-content {
-  max-height: 300px;
+#top-alerts-content, #location-alerts-content {
+  max-height: 500px;
   overflow-y: auto;
 }
 
@@ -77,18 +101,159 @@ input[type="text"] {
   border-radius: 4px;
 }
 
-/* Update these selectors */
-#location-search {
-  margin-top: 20px;
-  text-align: center;
+.alert-description {
+  margin-top: 10px;
 }
 
-#location-input {
-  width: 200px; /* Increased width to accommodate longer city names */
-  margin-right: 10px;
+.scrollable-description {
+  max-height: 150px;
+  overflow-y: auto;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+#current-weather {
+  margin-bottom: 20px;
+}
+
+.current-weather {
+  background-color: var(--weather-bg-color);
+  color: var(--weather-text-color);
+  border-radius: 4px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.weather-main {
+  display: flex;
+  align-items: center;
+}
+
+.weather-main img {
+  width: 50px;
+  height: 50px;
+}
+
+.temperature {
+  font-size: 2em;
+  margin-left: 10px;
+}
+
+.weather-details {
+  text-align: right;
+}
+
+.location {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.description {
+  font-style: italic;
+}
+
+.humidity, .wind {
+  font-size: 0.9em;
 }
 
 #location-alerts-content {
-  max-height: 300px;
-  overflow-y: auto;
+  border-top: 1px solid #ccc;
+  padding-top: 10px;
 }
+
+.temperature-toggle,
+.theme-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  margin-right: 5px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.slider.round {
+  border-radius: 20px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+#temp-unit-label,
+#theme-label {
+  font-size: 0.9em;
+  min-width: 30px; /* Ensure labels have consistent width */
+}
+
+.data-sources {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.8em;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.data-sources p {
+  margin: 0;
+}
+
+.data-sources a {
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+.data-sources a:hover {
+  text-decoration: underline;
+}
+
