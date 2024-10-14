@@ -8,29 +8,37 @@
 </head>
 <body>
   <h1>USA Weather Alerts</h1>
-  <div class="toggle-container">
-    <div class="temperature-toggle">
-      <label class="switch">
-        <input type="checkbox" id="temp-unit-toggle">
-        <span class="slider round"></span>
-      </label>
-      <span id="temp-unit-label">°C</span>
+  <div class="top-controls">
+    <div id="refresh-interval">
+      <label for="interval-select">Refresh:</label>
+      <select id="interval-select">
+        <option value="5">5m</option>
+        <option value="10" selected>10m</option>
+        <option value="15">15m</option>
+        <option value="30">30m</option>
+        <option value="60">1h</option>
+      </select>
     </div>
-    <div class="theme-toggle">
-      <label class="switch">
-        <input type="checkbox" id="theme-toggle">
-        <span class="slider round"></span>
-      </label>
-      <span id="theme-label">Light</span>
+    <div class="toggle-container">
+      <div class="temperature-toggle">
+        <label class="switch">
+          <input type="checkbox" id="temp-unit-toggle">
+          <span class="slider round"></span>
+        </label>
+        <span id="temp-unit-label">°C</span>
+      </div>
+      <div class="theme-toggle">
+        <label class="switch">
+          <input type="checkbox" id="theme-toggle">
+          <span class="slider round"></span>
+        </label>
+        <span id="theme-label">Light</span>
+      </div>
     </div>
   </div>
   <div id="current-weather">
     <h2>Current Weather</h2>
     <div id="current-weather-content"></div>
-  </div>
-  <div id="top-alerts">
-    <h2>Top 3 Alerts in USA</h2>
-    <div id="top-alerts-content"></div>
   </div>
   <div id="location-search">
     <h2>Search by City or ZIP Code</h2>
@@ -40,6 +48,10 @@
   <div id="location-alerts">
     <h2>Alerts for Location</h2>
     <div id="location-alerts-content"></div>
+  </div>
+  <div id="top-alerts">
+    <h2>Top Alerts in USA</h2>
+    <div id="top-alerts-content"></div>
   </div>
   <div id="loading" style="display: none;">Loading...</div>
   <div class="data-sources">

@@ -5,7 +5,9 @@
   "description": "Shows top weather alerts in the USA and allows searching by zip code",
   "permissions": [
     "geolocation",
-    "webRequest"
+    "webRequest",
+    "alarms",
+    "storage"
   ],
   "host_permissions": [
     "https://api.weather.gov/*",
