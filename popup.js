@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   console.log('Elements retrieved:', { topAlertsContent, locationInput, searchBtn, locationAlertsContent, currentWeatherContent });
 
-  const OPENWEATHER_API_KEY = 'OPENWEATHER_API_KEY'; // Replace with your actual API key
+  const OPENWEATHER_API_KEY = ''; // Replace with your actual API key
 
   function showLoading() {
     document.getElementById('loading').style.display = 'block';
@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Fetch current location weather on popup open
   getCurrentLocationWeather();
 
+  // Fetch top alerts separately
   fetchTopAlerts();
 
   searchBtn.addEventListener('click', function() {
@@ -61,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function getCurrentLocationWeather() {
+    console.log('Getting current location weather');
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(function(position) {
         const lat = position.coords.latitude;
@@ -77,10 +79,12 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function fetchWeatherData(lat, lon) {
+    console.log('Fetching weather data for', lat, lon);
     showLoading();
     fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`)
       .then(response => response.json())
       .then(data => {
+        console.log('Received weather data:', data);
         displayCurrentWeather(data, currentWeatherContent);
       })
       .catch(error => {
@@ -99,8 +103,6 @@ document.addEventListener('DOMContentLoaded', function() {
     url.searchParams.append('message_type', 'alert');
     url.searchParams.append('urgency', 'Immediate');
     url.searchParams.append('severity', 'Severe,Extreme');
-    // Remove the limit parameter
-    // url.searchParams.append('limit', '3');
 
     showLoading();
 
@@ -116,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return response.json();
     })
     .then(data => {
-      console.log('Received data:', data);
+      console.log('Received top alerts data:', data);
       if (data.features && data.features.length > 0) {
         displayTopAlerts(data.features, topAlertsContent);
       } else {
