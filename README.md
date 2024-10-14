@@ -2,17 +2,21 @@
 
 ## Overview
 
-The USA Weather Alerts Chrome Extension provides users with up-to-date information on severe weather alerts across the United States. It displays the current weather for the user's location, the top 3 most urgent alerts nationwide, and allows users to search for alerts by ZIP code or city name.
+The USA Weather Alerts Chrome Extension provides users with up-to-date information on severe weather alerts across the United States. It displays the current weather for the user's location, top severe weather alerts nationwide, and allows users to search for alerts by ZIP code or city name. The extension icon shows the current number of severe weather alerts, updating at a user-defined interval.
 
 ## Features
 
 - Display current weather for the user's location
-- Show top 3 severe weather alerts in the USA
+- Show top severe weather alerts in the USA (not limited to a specific number)
 - Search for weather alerts by ZIP code or city name
+- Display weather and alerts for searched locations
 - Toggle between Celsius and Fahrenheit temperature units
 - Dark mode support for comfortable viewing in low-light environments
 - Color-coded alert display (red for alerts, green for no alerts)
 - Responsive design with scrollable content areas
+- Extension icon badge showing the current number of severe weather alerts
+- User-configurable refresh interval for alert updates (5m, 10m, 15m, 30m, 1h)
+- Detailed weather information including temperature, humidity, and wind speed
 
 ## Installation
 
@@ -23,12 +27,14 @@ The USA Weather Alerts Chrome Extension provides users with up-to-date informati
 
 ## Usage
 
-1. Click on the extension icon in your Chrome toolbar to open the popup.
-2. View the current weather for your location (requires location permission).
-3. Toggle between Celsius and Fahrenheit using the temperature unit switch.
-4. Toggle between light and dark mode using the theme switch.
-5. View the top 3 severe weather alerts for the USA.
-6. Enter a ZIP code or city name in the search box and click "Search" to view alerts for a specific area.
+1. The extension icon will display the current number of severe weather alerts, updating at the chosen interval.
+2. Click on the extension icon in your Chrome toolbar to open the popup.
+3. View the current weather for your location (requires location permission).
+4. Use the dropdown at the top to set the refresh interval for alert updates.
+5. Toggle between Celsius and Fahrenheit using the temperature unit switch.
+6. Toggle between light and dark mode using the theme switch.
+7. View the top severe weather alerts for the USA.
+8. Enter a ZIP code or city name in the search box and click "Search" to view weather and alerts for a specific area.
 
 ## API Usage
 
@@ -45,13 +51,13 @@ Note: You need to provide your own OpenWeatherMap API key in the `popup.js` file
 - `popup.html`: HTML structure for the extension popup
 - `popup.js`: JavaScript for fetching and displaying weather data and alerts
 - `styles.css`: CSS for styling the popup, including dark mode support
-- `background.js`: Background script (currently minimal)
+- `background.js`: Background script for fetching and updating the alert count on the extension icon
 
 ## Development
 
 To modify or extend this extension:
 
-1. Edit the relevant files (`popup.html`, `popup.js`, `styles.css`).
+1. Edit the relevant files (`popup.html`, `popup.js`, `styles.css`, `background.js`).
 2. If adding new features, update the `manifest.json` file as needed.
 3. Reload the extension in Chrome to see your changes.
 

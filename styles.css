@@ -173,7 +173,7 @@ input[type="text"] {
 
 .toggle-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: 10px;
 }
@@ -257,3 +257,25 @@ input:checked + .slider:before {
   text-decoration: underline;
 }
 
+.top-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+#refresh-interval {
+  display: flex;
+  align-items: center;
+  font-size: 0.8em;
+}
+
+#interval-select {
+  margin-left: 5px;
+  padding: 2px;
+  font-size: 0.9em;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}

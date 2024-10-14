@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const currentWeatherContent = document.getElementById('current-weather-content');
   const tempUnitToggle = document.getElementById('temp-unit-toggle');
   const tempUnitLabel = document.getElementById('temp-unit-label');
+  const themeToggle = document.getElementById('theme-toggle');
+  const themeLabel = document.getElementById('theme-label');
+  const intervalSelect = document.getElementById('interval-select');
   let isCelsius = true;
 
   console.log('Elements retrieved:', { topAlertsContent, locationInput, searchBtn, locationAlertsContent, currentWeatherContent });
@@ -36,11 +39,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  tempUnitToggle.addEventListener('change', function() {
-    isCelsius = !isCelsius;
-    tempUnitLabel.textContent = isCelsius ? '°C' : '°F';
-    updateTemperatureDisplay();
-  });
+  if (tempUnitToggle) {
+    tempUnitToggle.addEventListener('change', function() {
+      isCelsius = !isCelsius;
+      if (tempUnitLabel) tempUnitLabel.textContent = isCelsius ? '°C' : '°F';
+      updateTemperatureDisplay();
+    });
+  }
 
   function updateTemperatureDisplay() {
     const temperatureElements = document.querySelectorAll('.temperature');
@@ -94,7 +99,8 @@ document.addEventListener('DOMContentLoaded', function() {
     url.searchParams.append('message_type', 'alert');
     url.searchParams.append('urgency', 'Immediate');
     url.searchParams.append('severity', 'Severe,Extreme');
-    url.searchParams.append('limit', '3');
+    // Remove the limit parameter
+    // url.searchParams.append('limit', '3');
 
     showLoading();
 
@@ -250,6 +256,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function displayCurrentWeather(weatherData, container) {
+    if (!weatherData || !weatherData.main || !weatherData.weather || weatherData.weather.length === 0) {
+      container.innerHTML = '<p>Error: Unable to retrieve weather data</p>';
+      return;
+    }
+
     const celsiusTemp = weatherData.main.temp;
     const displayTemp = isCelsius ? celsiusTemp : (celsiusTemp * 9/5) + 32;
     const unit = isCelsius ? '°C' : '°F';
@@ -261,20 +272,36 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="temperature" data-celsius="${celsiusTemp}">${Math.round(displayTemp)}${unit}</div>
         </div>
         <div class="weather-details">
-          <div class="location">${weatherData.name}</div>
-          <div class="description">${weatherData.weather[0].description}</div>
-          <div class="humidity">Humidity: ${weatherData.main.humidity}%</div>
-          <div class="wind">Wind: ${Math.round(weatherData.wind.speed * 3.6)} km/h</div>
+          <div class="location">${weatherData.name || 'Unknown Location'}</div>
+          <div class="description">${weatherData.weather[0].description || 'No description available'}</div>
+          <div class="humidity">Humidity: ${weatherData.main.humidity || 'N/A'}%</div>
+          <div class="wind">Wind: ${weatherData.wind && weatherData.wind.speed ? Math.round(weatherData.wind.speed * 3.6) : 'N/A'} km/h</div>
         </div>
       </div>
     `;
   }
 
-  const themeToggle = document.getElementById('theme-toggle');
-  const themeLabel = document.getElementById('theme-label');
+  if (themeToggle) {
+    themeToggle.addEventListener('change', function() {
+      document.body.classList.toggle('dark-mode');
+      if (themeLabel) themeLabel.textContent = document.body.classList.contains('dark-mode') ? 'Dark' : 'Light';
+    });
+  }
 
-  themeToggle.addEventListener('change', function() {
-    document.body.classList.toggle('dark-mode');
-    themeLabel.textContent = document.body.classList.contains('dark-mode') ? 'Dark' : 'Light';
-  });
+  if (intervalSelect) {
+    intervalSelect.addEventListener('change', function() {
+      const interval = parseInt(this.value);
+      chrome.storage.sync.set({refreshInterval: interval}, function() {
+        console.log('Refresh interval set to ' + interval + ' minutes');
+        chrome.runtime.sendMessage({action: "updateAlarm", interval: interval});
+      });
+    });
+
+    // Load saved interval
+    chrome.storage.sync.get('refreshInterval', function(data) {
+      if (data.refreshInterval) {
+        intervalSelect.value = data.refreshInterval.toString();
+      }
+    });
+  }
 });
