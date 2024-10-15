@@ -10,7 +10,7 @@ function fetchTopAlerts() {
 
   fetch(url, {
     headers: {
-      'User-Agent': 'WeatherAlertExtension (your.email@example.com)'
+      'User-Agent': 'WeatherAlertExtension (basil.baby@gmail.com)'
     }
   })
   .then(response => response.json())
