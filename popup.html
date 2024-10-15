@@ -36,21 +36,16 @@
       </div>
     </div>
   </div>
-  <div id="current-weather">
-    <h2>Current Weather</h2>
+  <div id="weather-and-search">
+    <h2>Current Location</h2>
+    <div id="location-search">
+      <input type="text" id="location-input" placeholder="Enter city or ZIP code">
+      <button id="search-btn">Search</button>
+    </div>
     <div id="current-weather-content"></div>
   </div>
-  <div id="location-search">
-    <h2>Search by City or ZIP Code</h2>
-    <input type="text" id="location-input" placeholder="Enter city or ZIP code">
-    <button id="search-btn">Search</button>
-  </div>
-  <div id="location-alerts">
-    <h2>Alerts for Location</h2>
-    <div id="location-alerts-content"></div>
-  </div>
-  <div id="top-alerts">
-    <h2>Top Alerts in USA</h2>
+  <div id="alerts-content">
+    <h2>Top Severe Alerts in USA</h2>
     <div id="top-alerts-content"></div>
   </div>
   <div id="loading" style="display: none;">Loading...</div>

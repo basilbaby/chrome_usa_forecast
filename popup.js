@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   console.log('Elements retrieved:', { topAlertsContent, locationInput, searchBtn, locationAlertsContent, currentWeatherContent });
 
-  const OPENWEATHER_API_KEY = ''; // Replace with your actual API key
+  const OPENWEATHER_API_KEY = 'OPENWEATHER_API_KEY'; // Replace with your actual API key
 
   function showLoading() {
     document.getElementById('loading').style.display = 'block';
@@ -25,18 +25,31 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('loading').style.display = 'none';
   }
 
-  // Fetch current location weather on popup open
-  getCurrentLocationWeather();
+  // Add this function at the beginning of your file
+  function showWeatherLoading() {
+    const weatherContent = document.getElementById('current-weather-content');
+    weatherContent.innerHTML = '<div class="loading-spinner"></div><p>Loading weather data...</p>';
+  }
 
-  // Fetch top alerts separately
-  fetchTopAlerts();
+  // Fetch current location weather and alerts on popup open
+  getCurrentLocationWeather();
+  fetchTopAlerts(); // Add this line to fetch top alerts
 
   searchBtn.addEventListener('click', function() {
-    console.log('Search button clicked');
     const location = locationInput.value.trim();
     if (location) {
-      console.log('Fetching alerts for location:', location);
-      fetchAlertsByLocation(location);
+      fetchWeatherAndAlertsByLocation(location);
+    }
+  });
+
+  // Add this code after the searchBtn event listener
+  locationInput.addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault(); // Prevent the default form submission
+      const location = this.value.trim();
+      if (location) {
+        fetchWeatherAndAlertsByLocation(location);
+      }
     }
   });
 
@@ -62,65 +75,115 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function getCurrentLocationWeather() {
-    console.log('Getting current location weather');
+    showWeatherLoading(); // Add this line
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(function(position) {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
-        fetchWeatherData(lat, lon);
+        fetchWeatherAndAlertsByCoordinates(lat, lon, true);
       }, function(error) {
         console.error("Error getting location:", error);
-        currentWeatherContent.innerHTML = "<p>Unable to get current location. Please search for a location.</p>";
+        displayError("Unable to get current location. Please search for a location.");
       });
     } else {
       console.log("Geolocation is not available");
-      currentWeatherContent.innerHTML = "<p>Geolocation is not available. Please search for a location.</p>";
+      displayError("Geolocation is not available. Please search for a location.");
     }
   }
 
-  function fetchWeatherData(lat, lon) {
-    console.log('Fetching weather data for', lat, lon);
-    showLoading();
-    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`)
-      .then(response => response.json())
-      .then(data => {
-        console.log('Received weather data:', data);
-        displayCurrentWeather(data, currentWeatherContent);
+  function fetchWeatherAndAlertsByCoordinates(lat, lon, isCurrentLocation = false) {
+    if (isCurrentLocation) {
+      showWeatherLoading(); // Add this line
+    }
+    Promise.all([
+      fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`),
+      fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`, {
+        headers: { 'User-Agent': 'USA WeatherAlertExtension (basil.baby@gmail.com)' }
       })
-      .catch(error => {
-        console.error('Error fetching weather data:', error);
-        currentWeatherContent.innerHTML = "<p>Error fetching weather data. Please try again later.</p>";
-      })
-      .finally(hideLoading);
+    ])
+    .then(([weatherResponse, alertsResponse]) => Promise.all([weatherResponse.json(), alertsResponse.json()]))
+    .then(([weatherData, alertsData]) => {
+      displayCurrentWeatherAndAlerts(weatherData, alertsData.features, currentWeatherContent);
+    })
+    .catch(error => {
+      console.error('Error fetching weather and alerts:', error);
+      displayError(`Error fetching data: ${error.message}. Please try again later.`);
+    });
+  }
+
+  function displayCurrentWeatherAndAlerts(weatherData, alerts, container) {
+    if (!weatherData || !weatherData.main || !weatherData.weather || weatherData.weather.length === 0) {
+      container.innerHTML = '<p>Error: Unable to retrieve weather data</p>';
+      return;
+    }
+
+    const celsiusTemp = weatherData.main.temp;
+    const displayTemp = isCelsius ? celsiusTemp : (celsiusTemp * 9/5) + 32;
+    const unit = isCelsius ? '°C' : '°F';
+
+    let html = `
+      <div class="current-weather">
+        <div class="weather-main">
+          <img src="http://openweathermap.org/img/wn/${weatherData.weather[0].icon}.png" alt="${weatherData.weather[0].description}">
+          <div class="temperature" data-celsius="${celsiusTemp}">${Math.round(displayTemp)}${unit}</div>
+        </div>
+        <div class="weather-details">
+          <div class="location">${weatherData.name || 'Unknown Location'}</div>
+          <div class="description">${weatherData.weather[0].description || 'No description available'}</div>
+          <div class="humidity">Humidity: ${weatherData.main.humidity || 'N/A'}%</div>
+          <div class="wind">Wind: ${weatherData.wind && weatherData.wind.speed ? Math.round(weatherData.wind.speed * 3.6) : 'N/A'} km/h</div>
+        </div>
+      </div>
+    `;
+
+    if (alerts && alerts.length > 0) {
+      html += `
+        <div class="active-alerts-banner">
+          <h3>Active Alerts</h3>
+          <p>Number of alerts: ${alerts.length}</p>
+      `;
+      alerts.forEach(alert => {
+        html += `
+          <div class="alert">
+            <h4>${alert.properties.event}</h4>
+            <p>${alert.properties.headline}</p>
+            <div class="alert-details">
+              <p>Area: ${alert.properties.areaDesc}</p>
+              <p>Severity: ${alert.properties.severity}</p>
+              <p>Urgency: ${alert.properties.urgency}</p>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+    } else {
+      html += `
+        <div class="no-alert">
+          <h3>No active alerts for this location.</h3>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
   }
 
   function fetchTopAlerts() {
-    console.log('Fetching top alerts');
-    topAlertsContent.textContent = 'Fetching top alerts...';
-    
+    showLoading();
     const url = new URL('https://api.weather.gov/alerts/active');
     url.searchParams.append('status', 'actual');
     url.searchParams.append('message_type', 'alert');
     url.searchParams.append('urgency', 'Immediate');
     url.searchParams.append('severity', 'Severe,Extreme');
 
-    showLoading();
-
     fetch(url, {
       headers: {
-        'User-Agent': 'WeatherAlertExtension (your.email@example.com)'
+        'User-Agent': 'WeatherAlertExtension (basil.baby@gmail.com)'
       }
     })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-      console.log('Received top alerts data:', data);
       if (data.features && data.features.length > 0) {
-        displayTopAlerts(data.features, topAlertsContent);
+        displayAlerts(data.features, topAlertsContent);
       } else {
         displayNoAlerts(topAlertsContent, 'No active alerts found.');
       }
@@ -132,19 +195,8 @@ document.addEventListener('DOMContentLoaded', function() {
     .finally(hideLoading);
   }
 
-  function displayTopAlerts(alerts, container) {
-    console.log(`Number of top alerts: ${alerts.length}`);
-    container.innerHTML = `<p>Number of alerts: ${alerts.length}</p>`;
-    displayAlerts(alerts, container, true);
-  }
-
-  function fetchAlertsByLocation(location) {
-    console.log('Fetching alerts for location:', location);
-    locationAlertsContent.textContent = `Fetching alerts for ${location}...`;
-
-    // Check if the input is a ZIP code (5 digit number)
+  function fetchWeatherAndAlertsByLocation(location) {
     const isZipCode = /^\d{5}$/.test(location);
-
     let geocodingUrl;
     if (isZipCode) {
       geocodingUrl = `http://api.openweathermap.org/geo/1.0/zip?zip=${location},US&appid=${OPENWEATHER_API_KEY}`;
@@ -165,62 +217,51 @@ document.addEventListener('DOMContentLoaded', function() {
         let lat, lon;
         if (isZipCode) {
           if (!data.lat || !data.lon) {
-            throw new Error('ZIP code not found');
+            console.error('Invalid ZIP code data:', data);
+            throw new Error('Invalid ZIP code or no data for this location');
           }
           lat = data.lat;
           lon = data.lon;
         } else {
-          if (data.length === 0) {
-            throw new Error('Location not found');
+          if (!Array.isArray(data) || data.length === 0) {
+            console.error('Invalid city data:', data);
+            throw new Error('City not found or no data for this location');
           }
           lat = data[0].lat;
           lon = data[0].lon;
         }
-        
-        // Fetch current weather
-        return Promise.all([
-          fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`),
-          fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`, {
-            headers: {
-              'User-Agent': 'USA WeatherAlertExtension (basil.baby@gmail.com)'
-            }
-          })
-        ]);
-      })
-      .then(([weatherResponse, alertsResponse]) => Promise.all([weatherResponse.json(), alertsResponse.json()]))
-      .then(([weatherData, alertsData]) => {
-        console.log('Received weather data:', weatherData);
-        console.log('Received alerts data:', alertsData);
-        
-        locationAlertsContent.innerHTML = ''; // Clear previous content
-        
-        // Always display weather data
-        displayCurrentWeather(weatherData, locationAlertsContent);
-
-        // Display alerts if any
-        if (alertsData.features && alertsData.features.length > 0) {
-          console.log(`Number of location alerts: ${alertsData.features.length}`);
-          const alertsContainer = document.createElement('div');
-          alertsContainer.id = 'location-specific-alerts';
-          locationAlertsContent.appendChild(alertsContainer);
-          displayAlerts(alertsData.features, alertsContainer, true);
-        } else {
-          const noAlertsDiv = document.createElement('div');
-          noAlertsDiv.className = 'no-alert';
-          noAlertsDiv.innerHTML = `<h3>No active alerts found for ${location}.</h3>`;
-          locationAlertsContent.appendChild(noAlertsDiv);
-        }
+        console.log(`Location found: ${lat}, ${lon}`);
+        fetchWeatherAndAlertsByCoordinates(lat, lon);
       })
       .catch(error => {
-        console.error('Error fetching data for location:', error);
-        locationAlertsContent.innerHTML = ''; // Clear previous content
-        displayNoAlerts(locationAlertsContent, `Error fetching data: ${error.message}. Please check the location and try again.`);
+        console.error('Error fetching location data:', error);
+        if (error.message.includes('Invalid ZIP code') || error.message.includes('City not found')) {
+          displayError(`Error: ${error.message}. Please check the location and try again.`);
+        } else if (error.message.includes('HTTP error')) {
+          displayError('Error connecting to the location service. Please try again later.');
+        } else {
+          displayError(`Unexpected error: ${error.message}. Please try again.`);
+        }
       })
       .finally(hideLoading);
   }
 
-  function displayAlerts(alerts, container, includeDescription = false) {
+  function displayError(message) {
+    if (currentWeatherContent) {
+      currentWeatherContent.innerHTML = `<p class="error">${message}</p>`;
+    }
+    const alertsList = document.getElementById('alerts-list');
+    if (alertsList) {
+      alertsList.innerHTML = '';
+    }
+  }
+
+  function displayAlerts(alerts, container) {
     console.log(`Displaying ${alerts.length} alerts`);
+    if (!container) {
+      console.error('Alert container not found');
+      return;
+    }
     container.innerHTML = `<p>Number of alerts: ${alerts.length}</p>`;
     alerts.forEach(alert => {
       const alertDiv = document.createElement('div');
@@ -235,15 +276,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
       
-      if (includeDescription) {
-        alertContent += `
-          <div class="alert-description">
-            <h4>Description:</h4>
-            <div class="scrollable-description">${alert.properties.description.replace(/\n/g, '<br>')}</div>
-          </div>
-        `;
-      }
-      
       alertDiv.innerHTML = alertContent;
       container.appendChild(alertDiv);
     });
@@ -253,32 +285,6 @@ document.addEventListener('DOMContentLoaded', function() {
     container.innerHTML = `
       <div class="no-alert">
         <h3>${message}</h3>
-      </div>
-    `;
-  }
-
-  function displayCurrentWeather(weatherData, container) {
-    if (!weatherData || !weatherData.main || !weatherData.weather || weatherData.weather.length === 0) {
-      container.innerHTML = '<p>Error: Unable to retrieve weather data</p>';
-      return;
-    }
-
-    const celsiusTemp = weatherData.main.temp;
-    const displayTemp = isCelsius ? celsiusTemp : (celsiusTemp * 9/5) + 32;
-    const unit = isCelsius ? '°C' : '°F';
-
-    container.innerHTML = `
-      <div class="current-weather">
-        <div class="weather-main">
-          <img src="http://openweathermap.org/img/wn/${weatherData.weather[0].icon}.png" alt="${weatherData.weather[0].description}">
-          <div class="temperature" data-celsius="${celsiusTemp}">${Math.round(displayTemp)}${unit}</div>
-        </div>
-        <div class="weather-details">
-          <div class="location">${weatherData.name || 'Unknown Location'}</div>
-          <div class="description">${weatherData.weather[0].description || 'No description available'}</div>
-          <div class="humidity">Humidity: ${weatherData.main.humidity || 'N/A'}%</div>
-          <div class="wind">Wind: ${weatherData.wind && weatherData.wind.speed ? Math.round(weatherData.wind.speed * 3.6) : 'N/A'} km/h</div>
-        </div>
       </div>
     `;
   }
