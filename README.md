@@ -4,14 +4,6 @@
 
 The USA Weather Alerts Chrome Extension provides users with up-to-date information on severe weather alerts across the United States. It displays the current weather for the user's location, top severe weather alerts nationwide, and allows users to search for alerts by ZIP code or city name.
 
-## Screenshots
-
-### Current Location with Active Alerts
-![Current Location with Active Alerts](https://imagedelivery.net/f5tF3V4WaB6L98qcq1rX5w/c5a5c5a0-9c1f-4e0e-8c7f-b4f4b5b8c100/public)
-
-### Current Location without Active Alerts
-![Current Location without Active Alerts](https://imagedelivery.net/f5tF3V4WaB6L98qcq1rX5w/c5a5c5a0-9c1f-4e0e-8c7f-b4f4b5b8c200/public)
-
 ## Features
 
 - Display current weather for the user's location
